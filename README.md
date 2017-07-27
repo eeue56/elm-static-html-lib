@@ -27,3 +27,5 @@ elmStaticHtml("./", "MyModule.view", options)
 
 ```
 
+
+Check out the [example](https://github.com/eeue56/elm-static-html-lib/tree/master/example) folder for a more in-depth example.
