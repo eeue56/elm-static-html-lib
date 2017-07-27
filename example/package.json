@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^8.0.17",
-    "elm-static-html-lib": "0.0.2"
+    "elm-static-html-lib": "0.0.3"
   }
 }
