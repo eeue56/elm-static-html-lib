@@ -1,0 +1,11 @@
+{
+    "exclude": ["node_modules"],
+    "include": ["index.ts"],
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "target": "es5",
+        "outDir": "dist",
+        "suppressImplicitAnyIndexErrors": true,
+         "declaration": true
+    }
+}

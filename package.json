@@ -1,0 +1,38 @@
+{
+  "name": "elm-static-html-lib",
+  "version": "0.0.1",
+  "description": "Generate HTML from Elm views ",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "node_modules/.bin/tsfmt -r && node_modules/.bin/tslint --fix -p . && node_modules/.bin/tsc",
+    "prepublishOnly": "node_modules/.bin/tsc -p ./ --outDir dist/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eeue56/elm-static-html-lib.git"
+  },
+  "keywords": [
+    "elm",
+    "static",
+    "server-side",
+    "rendering"
+  ],
+  "author": "eeue56",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/eeue56/elm-static-html-lib/issues"
+  },
+  "homepage": "https://github.com/eeue56/elm-static-html-lib#readme",
+  "devDependencies": {
+    "@types/es6-promise": "0.0.32",
+    "@types/node": "^8.0.17",
+    "tslint": "^5.5.0",
+    "typescript": "^2.4.2",
+    "typescript-formatter": "^5.2.0"
+  },
+  "dependencies": {
+    "es6-promise": "^4.1.1",
+    "node-elm-compiler": "^4.3.2"
+  }
+}
