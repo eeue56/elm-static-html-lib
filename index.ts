@@ -32,9 +32,9 @@ function parseProjectName(repoName: string): string {
 export default function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
     // try to load elm-package.json
     const originalElmPackagePath = path.join(rootDir, "elm-package.json");
-    let elmPackage: any;
+    let elmPackage: any = null;
     try {
-        elmPackage = require(originalElmPackagePath);
+        elmPackage = JSON.parse(fs.readFileSync(originalElmPackagePath, 'utf8'));
     } catch (e) {
         return Promise.reject(`Failed to load ${originalElmPackagePath}`);
     }
