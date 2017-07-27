@@ -29,3 +29,8 @@ elmStaticHtml("./", "MyModule.view", options)
 
 
 Check out the [example](https://github.com/eeue56/elm-static-html-lib/tree/master/example) folder for a more in-depth example.
+
+
+## Production
+
+If you are running this in production, you may want to only generate the boilerplate files once. You can do that by setting the option `alreadyRun` to true. When `alreadyRun` is true, the Elm app is only started -- no boilerplate is generated.

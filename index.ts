@@ -10,6 +10,7 @@ const renderDirName = ".elm-static-html";
 export interface Options {
     model: any;
     decoder: string;
+    alreadyRun?: boolean;
 }
 
 function makeCacheDir(dirPath: string) {
@@ -29,17 +30,30 @@ function parseProjectName(repoName: string): string {
         .replace("/", "$");
 }
 
+function runElmApp(rootDir: string, model: any): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const Elm = require(path.join(rootDir, "elm.js"));
+        const elmApp = Elm.PrivateMain.worker(model);
+        elmApp.ports.htmlOut.subscribe(resolve);
+    });
+}
+
 export default function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
+    const dirPath = path.join(rootDir, renderDirName);
+
+    if (options.alreadyRun === true) {
+        return runElmApp(dirPath, options.model);
+    }
+
     // try to load elm-package.json
     const originalElmPackagePath = path.join(rootDir, "elm-package.json");
     let elmPackage: any = null;
     try {
-        elmPackage = JSON.parse(fs.readFileSync(originalElmPackagePath, 'utf8'));
+        elmPackage = JSON.parse(fs.readFileSync(originalElmPackagePath, "utf8"));
     } catch (e) {
         return Promise.reject(`Failed to load ${originalElmPackagePath}`);
     }
 
-    const dirPath = path.join(rootDir, renderDirName);
     makeCacheDir(dirPath);
 
     const projectName = parseProjectName(elmPackage.repository);
@@ -88,9 +102,7 @@ function runCompiler(privateMainPath: string, rootDir: string, model: any): Prom
                     return reject(exitCode);
                 }
 
-                const Elm = require(path.join(rootDir, "elm.js"));
-                const elmApp = Elm.PrivateMain.worker(model);
-                elmApp.ports.htmlOut.subscribe(resolve);
+                return runElmApp(rootDir, model).then(resolve);
             },
         );
     });
