@@ -14,6 +14,10 @@ function runTwice() {
         elmStaticHtml(process.cwd(), "MyModule.view", secondRunOptions)
         .then((generatedHtml) => {
             fs.writeFileSync("output2.html", generatedHtml);
+            elmStaticHtml(process.cwd(), "MyModule.view", secondRunOptions)
+            .then((generatedHtml) => {
+                fs.writeFileSync("output3.html", generatedHtml);
+            });
         });
     });
 }

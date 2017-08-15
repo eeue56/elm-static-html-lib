@@ -11,6 +11,7 @@ export interface Options {
     model: any;
     decoder: string;
     alreadyRun?: boolean;
+    elmMakePath?: string;
 }
 
 function makeCacheDir(dirPath: string) {
@@ -71,7 +72,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     const nativeString = templates.generateNativeModuleString(projectName);
     fs.writeFileSync(nativePath, nativeString);
 
-    return runCompiler(privateMainPath, dirPath, options.model);
+    return runCompiler(privateMainPath, dirPath, options.model, options.elmMakePath);
 }
 
 function fixElmPackage(workingDir: string, elmPackage: any) {
@@ -87,12 +88,16 @@ function fixElmPackage(workingDir: string, elmPackage: any) {
     return elmPackage;
 }
 
-function runCompiler(privateMainPath: string, rootDir: string, model: any): Promise<string> {
-    const options = {
+function runCompiler(privateMainPath: string, rootDir: string, model: any, elmMakePath?: string): Promise<string> {
+    const options : any = {
         cwd: rootDir,
         output: "elm.js",
         yes: true,
     };
+
+    if (elmMakePath) {
+        options.pathToMake = elmMakePath;
+    }
 
     return new Promise((resolve, reject) => {
         const compileProcess = compile(privateMainPath, options);
