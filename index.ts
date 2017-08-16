@@ -31,12 +31,21 @@ function parseProjectName(repoName: string): string {
         .replace("/", "$");
 }
 
-function runElmApp(rootDir: string, model: any): Promise<string> {
+function runElmApp(dirPath: string, model: any): Promise<string> {
     return new Promise((resolve, reject) => {
-        const Elm = require(path.join(rootDir, "elm.js"));
+        const Elm = require(path.join(dirPath, "elm.js"));
         const elmApp = Elm.PrivateMain.worker(model);
         elmApp.ports.htmlOut.subscribe(resolve);
     });
+}
+
+function wipeElmFromCache(dirPath: string) {
+    try {
+        const resolved = require.resolve(path.join(dirPath, "elm.js"));
+        delete require.cache[resolved];
+    } catch (e) {
+        // ignore if we didn't have elm in the require cache
+    }
 }
 
 export default function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
@@ -56,6 +65,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     }
 
     makeCacheDir(dirPath);
+    wipeElmFromCache(dirPath);
 
     const projectName = parseProjectName(elmPackage.repository);
     elmPackage = fixElmPackage(rootDir, elmPackage);
@@ -89,7 +99,7 @@ function fixElmPackage(workingDir: string, elmPackage: any) {
 }
 
 function runCompiler(privateMainPath: string, rootDir: string, model: any, elmMakePath?: string): Promise<string> {
-    const options : any = {
+    const options: any = {
         cwd: rootDir,
         output: "elm.js",
         yes: true,
