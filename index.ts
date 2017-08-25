@@ -1,3 +1,4 @@
+import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as templates from "./templates";
@@ -12,6 +13,7 @@ export interface Options {
     decoder: string;
     alreadyRun?: boolean;
     elmMakePath?: string;
+    installMethod?: string;
 }
 
 function makeCacheDir(dirPath: string) {
@@ -48,6 +50,20 @@ function wipeElmFromCache(dirPath: string) {
     }
 }
 
+function installPackages(installMethod?: string) {
+    return new Promise((resolve, reject) => {
+        let runningProcess = null;
+
+        if (installMethod) {
+            runningProcess = spawn(installMethod);
+        } else {
+            runningProcess = spawn("elm-package install --yes");
+        }
+
+        runningProcess.on("close", resolve);
+    });
+}
+
 export default function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
     const dirPath = path.join(rootDir, renderDirName);
 
@@ -82,7 +98,9 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     const nativeString = templates.generateNativeModuleString(projectName);
     fs.writeFileSync(nativePath, nativeString);
 
-    return runCompiler(privateMainPath, dirPath, options.model, options.elmMakePath);
+    return installPackages(options.installMethod).then(() => {
+        return runCompiler(privateMainPath, dirPath, options.model, options.elmMakePath);
+    });
 }
 
 function fixElmPackage(workingDir: string, elmPackage: any) {
