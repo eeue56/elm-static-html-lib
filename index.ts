@@ -50,17 +50,14 @@ function wipeElmFromCache(dirPath: string) {
     }
 }
 
-function installPackages(installMethod?: string) {
+function installPackages(dirPath: string, installMethod?: string) {
     return new Promise((resolve, reject) => {
-        let runningProcess = null;
-
         if (installMethod) {
-            runningProcess = spawn(installMethod);
+            let runningProcess = spawn(installMethod, [], { cwd : dirPath});
+            runningProcess.on("close", resolve);
         } else {
-            runningProcess = spawn("elm-package install --yes");
+            resolve();
         }
-
-        runningProcess.on("close", resolve);
     });
 }
 
@@ -98,7 +95,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     const nativeString = templates.generateNativeModuleString(projectName);
     fs.writeFileSync(nativePath, nativeString);
 
-    return installPackages(options.installMethod).then(() => {
+    return installPackages(dirPath, options.installMethod).then(() => {
         return runCompiler(privateMainPath, dirPath, options.model, options.elmMakePath);
     });
 }
