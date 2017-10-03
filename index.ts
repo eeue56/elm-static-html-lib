@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+import { createHash } from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 import * as templates from "./templates";
@@ -33,10 +34,10 @@ function parseProjectName(repoName: string): string {
         .replace("/", "$");
 }
 
-function runElmApp(dirPath: string, model: any): Promise<string> {
+function runElmApp(viewHash: string, dirPath: string, model: any): Promise<string> {
     return new Promise((resolve, reject) => {
         const Elm = require(path.join(dirPath, "elm.js"));
-        const elmApp = Elm.PrivateMain.worker(model);
+        const elmApp = Elm[`PrivateMain${viewHash}`].worker(model);
         elmApp.ports.htmlOut.subscribe(resolve);
     });
 }
@@ -53,7 +54,7 @@ function wipeElmFromCache(dirPath: string) {
 function installPackages(dirPath: string, installMethod?: string) {
     return new Promise((resolve, reject) => {
         if (installMethod) {
-            let runningProcess = spawn(installMethod, [], { cwd : dirPath});
+            const runningProcess = spawn(installMethod, [], { cwd: dirPath });
             runningProcess.on("close", resolve);
         } else {
             resolve();
@@ -61,11 +62,17 @@ function installPackages(dirPath: string, installMethod?: string) {
     });
 }
 
+function makeHash(rootDir: string, viewFunction: string): string {
+    return createHash("MD5").update(rootDir + viewFunction).digest("hex");
+}
+
 export default function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
+    const viewHash = makeHash(rootDir, viewFunction);
+
     const dirPath = path.join(rootDir, renderDirName);
 
     if (options.alreadyRun === true) {
-        return runElmApp(dirPath, options.model);
+        return runElmApp(viewHash, dirPath, options.model);
     }
 
     // try to load elm-package.json
@@ -84,7 +91,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     elmPackage = fixElmPackage(rootDir, elmPackage);
 
     const elmPackagePath = path.join(dirPath, "elm-package.json");
-    const privateMainPath = path.join(dirPath, "PrivateMain.elm");
+    const privateMainPath = path.join(dirPath, `PrivateMain${viewHash}.elm`);
     const nativePath = path.join(dirPath, "Native/Jsonify.js");
 
     fs.writeFileSync(elmPackagePath, JSON.stringify(elmPackage));
@@ -96,7 +103,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     fs.writeFileSync(nativePath, nativeString);
 
     return installPackages(dirPath, options.installMethod).then(() => {
-        return runCompiler(privateMainPath, dirPath, options.model, options.elmMakePath);
+        return runCompiler(viewHash, privateMainPath, dirPath, options.model, options.elmMakePath);
     });
 }
 
@@ -113,7 +120,8 @@ function fixElmPackage(workingDir: string, elmPackage: any) {
     return elmPackage;
 }
 
-function runCompiler(privateMainPath: string, rootDir: string, model: any, elmMakePath?: string): Promise<string> {
+function runCompiler(viewHash: string,
+                     privateMainPath: string, rootDir: string, model: any, elmMakePath?: string): Promise<string> {
     const options: any = {
         cwd: rootDir,
         output: "elm.js",
@@ -132,7 +140,7 @@ function runCompiler(privateMainPath: string, rootDir: string, model: any, elmMa
                     return reject(exitCode);
                 }
 
-                return runElmApp(rootDir, model).then(resolve);
+                return runElmApp(viewHash, rootDir, model).then(resolve);
             },
         );
     });
