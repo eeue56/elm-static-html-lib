@@ -38,7 +38,7 @@ function runElmApp(viewHash: string, dirPath: string, model: any): Promise<strin
     return new Promise((resolve, reject) => {
         const Elm = require(path.join(dirPath, "elm.js"));
         const elmApp = Elm[`PrivateMain${viewHash}`].worker(model);
-        elmApp.ports.htmlOut.subscribe(resolve);
+        elmApp.ports[`htmlOut${viewHash}`].subscribe(resolve);
     });
 }
 
@@ -96,7 +96,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
 
     fs.writeFileSync(elmPackagePath, JSON.stringify(elmPackage));
 
-    const rendererFileContents = templates.generateRendererFile(viewFunction, options.decoder);
+    const rendererFileContents = templates.generateRendererFile(viewHash, viewFunction, options.decoder);
     fs.writeFileSync(privateMainPath, rendererFileContents);
 
     const nativeString = templates.generateNativeModuleString(projectName);
@@ -133,15 +133,19 @@ function runCompiler(viewHash: string,
     }
 
     return new Promise((resolve, reject) => {
-        const compileProcess = compile(privateMainPath, options);
-        compileProcess.on("exit",
-            (exitCode: number) => {
-                if (exitCode !== 0) {
-                    return reject(exitCode);
-                }
+        fs.readdir(rootDir, (err, files) => {
+            const actualFiles = files.filter((name) => name.indexOf("PrivateMain") === 0);
 
-                return runElmApp(viewHash, rootDir, model).then(resolve);
-            },
-        );
+            const compileProcess = compile(actualFiles, options);
+            compileProcess.on("exit",
+                (exitCode: number) => {
+                    if (exitCode !== 0) {
+                        return reject(exitCode);
+                    }
+
+                    return runElmApp(viewHash, rootDir, model).then(resolve);
+                },
+            );
+        });
     });
 }

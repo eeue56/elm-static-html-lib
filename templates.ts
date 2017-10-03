@@ -20,11 +20,11 @@ function functionName(functionLine: string): string {
 
 // this is our render's file contents
 // basically just boilerplate
-export function generateRendererFile(viewFunction: string, decoderName: string): string {
+export function generateRendererFile(viewHash: string, viewFunction: string, decoderName: string): string {
     const imports = importLine(viewFunction) + "\n" + importLine(decoderName);
 
     const rendererFileContents = `
-port module PrivateMain exposing (..)
+port module PrivateMain${viewHash} exposing (..)
 
 import Platform
 import Html exposing (Html)
@@ -50,9 +50,9 @@ decode view =
 init : Json.Value -> ((), Cmd msg)
 init values =
     case Json.decodeValue ${decoderName} values of
-        Err err -> ((), htmlOut ("ERROR:" ++ err))
+        Err err -> ((), htmlOut${viewHash} ("ERROR:" ++ err))
         Ok model ->
-            ((), htmlOut <| decode <| ${viewFunction} model)
+            ((), htmlOut${viewHash} <| decode <| ${viewFunction} model)
 
 
 main = Platform.programWithFlags
@@ -61,7 +61,7 @@ main = Platform.programWithFlags
     , subscriptions = (\\_ -> Sub.none)
     }
 
-port htmlOut : String -> Cmd msg
+port htmlOut${viewHash} : String -> Cmd msg
 `;
     return rendererFileContents;
 }
