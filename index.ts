@@ -70,7 +70,7 @@ function installPackages(dirPath: string, installMethod?: string) {
 }
 
 function makeHash(rootDir: string, viewFunction: string): string {
-    return createHash("MD5").update(rootDir + viewFunction).digest("hex");
+    return createHash("MD5").update(viewFunction).digest("hex");
 }
 
 export default function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
