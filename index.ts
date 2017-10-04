@@ -39,9 +39,8 @@ function runElmApp(viewHash: string, dirPath: string, model: any): Promise<strin
         const Elm = require(path.join(dirPath, "elm.js"));
         const privateName = `PrivateMain${viewHash}`;
 
-        if (Object.keys(Elm).indexOf(privateName) === - 1){
-            console.log("Unable to find the module", privateName);
-            return reject("Code generation problem: " + privateName);
+        if (Object.keys(Elm).indexOf(privateName) === - 1) {
+            return reject("Code generation problem: Unable to find the module: " + privateName);
         }
 
         const elmApp = Elm[privateName].worker(model);
@@ -69,12 +68,12 @@ function installPackages(dirPath: string, installMethod?: string) {
     });
 }
 
-function makeHash(rootDir: string, viewFunction: string): string {
+function makeHash(viewFunction: string): string {
     return createHash("MD5").update(viewFunction).digest("hex");
 }
 
 export default function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
-    const viewHash = makeHash(rootDir, viewFunction);
+    const viewHash = makeHash(viewFunction);
 
     const dirPath = path.join(rootDir, renderDirName);
 
