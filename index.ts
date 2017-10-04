@@ -37,7 +37,14 @@ function parseProjectName(repoName: string): string {
 function runElmApp(viewHash: string, dirPath: string, model: any): Promise<string> {
     return new Promise((resolve, reject) => {
         const Elm = require(path.join(dirPath, "elm.js"));
-        const elmApp = Elm[`PrivateMain${viewHash}`].worker(model);
+        const privateName = `PrivateMain${viewHash}`;
+
+        if (Object.keys(Elm).indexOf(privateName) === - 1){
+            console.log("Unable to find the module", privateName);
+            return reject("Code generation problem: " + privateName);
+        }
+
+        const elmApp = Elm[privateName].worker(model);
         elmApp.ports[`htmlOut${viewHash}`].subscribe(resolve);
     });
 }
