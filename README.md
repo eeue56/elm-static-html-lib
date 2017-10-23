@@ -1,6 +1,6 @@
 # elm-static-html-lib
 
-Generate static html by passing a json object to your Elm views.
+Generate static html by passing an optional json object to your Elm views.
 
 Library version of elm-static-html.
 
@@ -12,6 +12,10 @@ npm install --save elm-static-html-lib
 
 ## Usage
 
+### with an argument
+
+In this example, we use `decodeModel` to turn the passed JSON into a model that our view can use.
+
 ```javascript
 
 import elmStaticHtml from "elm-static-html-lib";
@@ -19,6 +23,24 @@ import elmStaticHtml from "elm-static-html-lib";
 
 const model = { name: "Noah", age : 24 };
 const options = { model : model, decoder: "MyModule.decodeModel" };
+
+elmStaticHtml("./", "MyModule.view", options)
+.then((generatedHtml) => {
+    fs.writeFileSync("output.html", generatedHtml);
+});
+
+```
+
+### without an argument
+
+In this case, our view has the type `Html msg`.
+
+```javascript
+
+import elmStaticHtml from "elm-static-html-lib";
+
+
+const options = { };
 
 elmStaticHtml("./", "MyModule.view", options)
 .then((generatedHtml) => {

@@ -24,3 +24,10 @@ view model =
         [ Html.text <| "I am " ++ model.name
         , Html.text <| "And I am " ++ toString model.age ++ " years old."
         ]
+
+
+otherView : Html msg
+otherView =
+    Html.div
+        []
+        [ Html.div [] [ Html.text "This is a static HTML example without a model" ] ]

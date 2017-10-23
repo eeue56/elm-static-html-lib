@@ -18,10 +18,39 @@ function functionName(functionLine: string): string {
     return functionLine.substr(functionLine.lastIndexOf("."));
 }
 
+function initBodyWithDecoder(viewHash: string, viewFunction: string, decoderName: string): string {
+    return `
+init : Json.Value -> ((), Cmd msg)
+init values =
+    case Json.decodeValue ${decoderName} values of
+        Err err -> ((), htmlOut${viewHash} ("ERROR:" ++ err))
+        Ok model ->
+            ((), htmlOut${viewHash} <| decode <| ${viewFunction} model)
+`;
+}
+
+function initBodyWithoutDecoder(viewHash: string, viewFunction: string): string {
+    return `
+init : Json.Value -> ((), Cmd msg)
+init _ =
+    ((), htmlOut${viewHash} <| decode <| ${viewFunction})
+`;
+}
+
 // this is our render's file contents
 // basically just boilerplate
 export function generateRendererFile(viewHash: string, viewFunction: string, decoderName: string): string {
-    const imports = importLine(viewFunction) + "\n" + importLine(decoderName);
+    let imports = importLine(viewFunction) + "\n";
+    if (decoderName) {
+        imports += importLine(decoderName);
+    }
+
+    let initBody;
+    if (decoderName) {
+        initBody = initBodyWithDecoder(viewHash, viewFunction, decoderName);
+    } else {
+        initBody = initBodyWithoutDecoder(viewHash, viewFunction);
+    }
 
     const rendererFileContents = `
 port module PrivateMain${viewHash} exposing (..)
@@ -47,13 +76,7 @@ decode view =
         Err str -> "ERROR:" ++ str
         Ok str -> nodeToStringWithOptions options str
 
-init : Json.Value -> ((), Cmd msg)
-init values =
-    case Json.decodeValue ${decoderName} values of
-        Err err -> ((), htmlOut${viewHash} ("ERROR:" ++ err))
-        Ok model ->
-            ((), htmlOut${viewHash} <| decode <| ${viewFunction} model)
-
+${initBody}
 
 main = Platform.programWithFlags
     { init = init

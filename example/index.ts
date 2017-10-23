@@ -1,4 +1,4 @@
-import elmStaticHtml from "elm-static-html-lib";
+import elmStaticHtml from "../index";
 import * as fs from "fs";
 
 const model = { name: "Noah", age : 24 };
@@ -23,3 +23,13 @@ function runTwice() {
 }
 
 runTwice();
+
+
+function runWithoutModel() {
+    elmStaticHtml(process.cwd(), "MyModule.otherView", {})
+    .then((generatedHtml) => {
+        fs.writeFileSync("output4.html", generatedHtml);
+    });
+}
+
+runWithoutModel();

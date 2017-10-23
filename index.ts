@@ -10,8 +10,8 @@ const compile = require("node-elm-compiler").compile;
 const renderDirName = ".elm-static-html";
 
 export interface Options {
-    model: any;
-    decoder: string;
+    model?: any;
+    decoder?: string;
     alreadyRun?: boolean;
     elmMakePath?: string;
     installMethod?: string;
@@ -35,6 +35,7 @@ function parseProjectName(repoName: string): string {
 }
 
 function runElmApp(viewHash: string, dirPath: string, model: any): Promise<string> {
+
     return new Promise((resolve, reject) => {
         const Elm = require(path.join(dirPath, "elm.js"));
         const privateName = `PrivateMain${viewHash}`;
@@ -43,7 +44,14 @@ function runElmApp(viewHash: string, dirPath: string, model: any): Promise<strin
             return reject("Code generation problem: Unable to find the module: " + privateName);
         }
 
-        const elmApp = Elm[privateName].worker(model);
+        let elmApp;
+
+        if (typeof model === "undefined") {
+            elmApp = Elm[privateName].worker();
+        } else {
+            elmApp = Elm[privateName].worker(model);
+        }
+
         elmApp.ports[`htmlOut${viewHash}`].subscribe(resolve);
     });
 }
