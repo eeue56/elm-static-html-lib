@@ -33,3 +33,15 @@ function runWithoutModel() {
 }
 
 runWithoutModel();
+
+
+function runLazyView() {
+    elmStaticHtml(process.cwd(), "MyModule.lazyView", firstRunOptions)
+    .then((generatedHtml) => {
+        fs.writeFileSync("output5.html", generatedHtml);
+    }).catch((err) =>{
+        console.log(err);
+    });
+} 
+
+runLazyView();

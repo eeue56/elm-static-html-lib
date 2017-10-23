@@ -2,6 +2,7 @@ module MyModule exposing (..)
 
 import Json.Decode
 import Html exposing (Html)
+import Html.Lazy
 
 
 type alias Model =
@@ -31,3 +32,8 @@ otherView =
     Html.div
         []
         [ Html.div [] [ Html.text "This is a static HTML example without a model" ] ]
+
+
+lazyView : Model -> Html msg
+lazyView model =
+    Html.Lazy.lazy view model

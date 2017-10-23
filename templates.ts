@@ -3,8 +3,21 @@ export function generateNativeModuleString(projectName: string): string {
     const fixedProjectName = projectName.replace(/-/g, "_");
 
     const nativeString = `
+function forceThunks(vNode) {
+    if (typeof vNode !== "undefined" && vNode.ctor === "_Tuple2" && !vNode.node) {
+        vNode._1 = forceThunks(vNode._1);
+    }
+    if (typeof vNode !== 'undefined' && vNode.type === 'thunk' && !vNode.node) {
+        vNode.node = vNode.thunk.apply(vNode.thunk, vNode.args);
+    }
+    if (typeof vNode !== 'undefined' && typeof vNode.children !== 'undefined') {
+        vNode.children = vNode.children.map(forceThunks);
+    }
+    return vNode;
+}
+
 var _${fixedProjectName}$Native_Jsonify = {
-    stringify: function(thing) { return JSON.stringify(thing); }
+    stringify: function(thing) { return forceThunks(thing) }
 };`;
 
     return nativeString;
@@ -65,14 +78,14 @@ import Native.Jsonify
 ${imports}
 
 
-asJsonString : Html msg -> String
-asJsonString = Native.Jsonify.stringify
+asJsonView : Html msg -> Json.Value
+asJsonView = Native.Jsonify.stringify
 
 options = { defaultFormatOptions | newLines = True, indent = 4 }
 
 decode : Html msg -> String
 decode view =
-    case Json.decodeString decodeElmHtml (asJsonString view) of
+    case Json.decodeValue decodeElmHtml (asJsonView view) of
         Err str -> "ERROR:" ++ str
         Ok str -> nodeToStringWithOptions options str
 
