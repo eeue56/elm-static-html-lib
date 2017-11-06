@@ -15,6 +15,8 @@ export interface Options {
     alreadyRun?: boolean;
     elmMakePath?: string;
     installMethod?: string;
+    indent?: number;
+    newLines?: boolean;
 }
 
 function makeCacheDir(dirPath: string) {
@@ -110,7 +112,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
 
     fs.writeFileSync(elmPackagePath, JSON.stringify(elmPackage));
 
-    const rendererFileContents = templates.generateRendererFile(viewHash, viewFunction, options.decoder);
+    const rendererFileContents = templates.generateRendererFile(viewHash, viewFunction, options.decoder, options.newLines, options.indent);
     fs.writeFileSync(privateMainPath, rendererFileContents);
 
     const nativeString = templates.generateNativeModuleString(projectName);

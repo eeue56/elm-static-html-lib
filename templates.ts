@@ -52,7 +52,7 @@ init _ =
 
 // this is our render's file contents
 // basically just boilerplate
-export function generateRendererFile(viewHash: string, viewFunction: string, decoderName: string): string {
+export function generateRendererFile(viewHash: string, viewFunction: string, decoderName: string, newLines: boolean, indent: number): string {
     let imports = importLine(viewFunction) + "\n";
     if (decoderName) {
         imports += importLine(decoderName);
@@ -64,6 +64,9 @@ export function generateRendererFile(viewHash: string, viewFunction: string, dec
     } else {
         initBody = initBodyWithoutDecoder(viewHash, viewFunction);
     }
+    let newLinesStr = newLines !== undefined ? (newLines.toString().charAt(0).toUpperCase() + newLines.toString().slice(1)) : "True";
+    let indentStr = indent !== undefined ? indent.toString() : "4";
+    let optionsSet = "options = { defaultFormatOptions | newLines = " + newLinesStr +", indent = " + indentStr + " }";
 
     const rendererFileContents = `
 port module PrivateMain${viewHash} exposing (..)
@@ -81,7 +84,7 @@ ${imports}
 asJsonView : Html msg -> Json.Value
 asJsonView = Native.Jsonify.stringify
 
-options = { defaultFormatOptions | newLines = True, indent = 4 }
+${optionsSet}
 
 decode : Html msg -> String
 decode view =
