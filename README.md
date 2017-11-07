@@ -49,6 +49,28 @@ elmStaticHtml("./", "MyModule.view", options)
 
 ```
 
+### With no indent
+
+In order to truly match what Elm generates at runtime, you may not want to have spaces or indent inserted. You can do this by setting the `newLines` and `indent` options like so:
+
+```javascript
+
+import elmStaticHtml from "elm-static-html-lib";
+
+
+const model = { name: "Noah", age : 24 };
+const options = { model : model, decoder: "MyModule.decodeModel", newLines: false, indent: 0 };
+
+elmStaticHtml("./", "MyModule.view", options)
+.then((generatedHtml) => {
+    fs.writeFileSync("output.html", generatedHtml);
+});
+
+```
+
+
+### More examples
+
 
 Check out the [example](https://github.com/eeue56/elm-static-html-lib/tree/master/example) folder for a more in-depth example.
 
