@@ -52,7 +52,8 @@ init _ =
 
 // this is our render's file contents
 // basically just boilerplate
-export function generateRendererFile(viewHash: string, viewFunction: string, decoderName: string, newLines: boolean, indent: number): string {
+export function generateRendererFile(
+    viewHash: string, viewFunction: string, decoderName: string, newLines: boolean, indent: number): string {
     let imports = importLine(viewFunction) + "\n";
     if (decoderName) {
         imports += importLine(decoderName);
@@ -66,16 +67,15 @@ export function generateRendererFile(viewHash: string, viewFunction: string, dec
     }
 
     let newLinesStr;
-    if(newLines === undefined || newLines === true) {
+    if (newLines === undefined || newLines === true) {
       newLinesStr = "True";
-    }
-    else {
+    } else {
       newLinesStr = "False";
     }
 
-    let indentStr = indent !== undefined ? indent : 4;
+    const indentStr = indent !== undefined ? indent : 4;
 
-    let optionsSet = `options = { defaultFormatOptions | newLines = ${newLinesStr}, indent = ${indentStr} }`;
+    const optionsSet = `options = { defaultFormatOptions | newLines = ${newLinesStr}, indent = ${indentStr} }`;
 
     const rendererFileContents = `
 port module PrivateMain${viewHash} exposing (..)
