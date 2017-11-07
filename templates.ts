@@ -73,7 +73,7 @@ export function generateRendererFile(viewHash: string, viewFunction: string, dec
       newLinesStr = "False";
     }
 
-    let indentStr = indent !== undefined ? indent : "4";
+    let indentStr = indent !== undefined ? indent : 4;
 
     let optionsSet = `options = { defaultFormatOptions | newLines = ${newLinesStr}, indent = ${indentStr} }`;
 
