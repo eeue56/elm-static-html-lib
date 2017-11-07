@@ -64,9 +64,18 @@ export function generateRendererFile(viewHash: string, viewFunction: string, dec
     } else {
         initBody = initBodyWithoutDecoder(viewHash, viewFunction);
     }
-    let newLinesStr = newLines !== undefined ? (newLines.toString().charAt(0).toUpperCase() + newLines.toString().slice(1)) : "True";
+
+    let newLinesStr;
+    if(newLines === undefined || newLines === true) {
+      newLinesStr = "True";
+    }
+    else {
+      newLinesStr = "False";
+    }
+
     let indentStr = indent !== undefined ? indent : "4";
-    let optionsSet = `options { newLines = ${newLinesStr}, indent = ${indentStr}`;
+
+    let optionsSet = `options = { defaultFormatOptions | newLines = ${newLinesStr}, indent = ${indentStr} }`;
 
     const rendererFileContents = `
 port module PrivateMain${viewHash} exposing (..)
