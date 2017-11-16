@@ -24,7 +24,7 @@ import elmStaticHtml from "elm-static-html-lib";
 const model = { name: "Noah", age : 24 };
 const options = { model : model, decoder: "MyModule.decodeModel" };
 
-elmStaticHtml("./", "MyModule.view", options)
+elmStaticHtml("/absolute/path/to/elm-package.json", "MyModule.view", options)
 .then((generatedHtml) => {
     fs.writeFileSync("output.html", generatedHtml);
 });
@@ -42,7 +42,7 @@ import elmStaticHtml from "elm-static-html-lib";
 
 const options = { };
 
-elmStaticHtml("./", "MyModule.view", options)
+elmStaticHtml("/absolute/path/to/elm-package.json", "MyModule.view", options)
 .then((generatedHtml) => {
     fs.writeFileSync("output.html", generatedHtml);
 });
@@ -61,12 +61,22 @@ import elmStaticHtml from "elm-static-html-lib";
 const model = { name: "Noah", age : 24 };
 const options = { model : model, decoder: "MyModule.decodeModel", newLines: false, indent: 0 };
 
-elmStaticHtml("./", "MyModule.view", options)
+elmStaticHtml("/absolute/path/to/elm-package.json", "MyModule.view", options)
 .then((generatedHtml) => {
     fs.writeFileSync("output.html", generatedHtml);
 });
 
 ```
+
+### API description
+
+```js
+elmStaticHtml(packagePath, viewFunction, options)
+```
+
+- **packagePath** *(String)*: an absolute path to the `elm-package.json` of your project.
+- **viewFunction** *(String)*: [Qualified name](https://guide.elm-lang.org/reuse/modules.html) to the view function. Format `<ModuleName>.<functionName>`
+- **options** *(object)*: A map of options. Can be either empty or contain a model and a qualified decoder name. See above for usage details.
 
 
 ### More examples
