@@ -36,11 +36,11 @@ function parseProjectName(repoName: string): string {
         .replace("/", "$");
 }
 
-function runElmApp(viewHash: string, dirPath: string, model: any): Promise<string> {
+function runElmApp(moduleHash: string, viewHash: string, dirPath: string, model: any): Promise<string> {
 
     return new Promise((resolve, reject) => {
         const Elm = require(path.join(dirPath, "elm.js"));
-        const privateName = `PrivateMain${viewHash}`;
+        const privateName = `PrivateMain${moduleHash}`;
 
         if (Object.keys(Elm).indexOf(privateName) === - 1) {
             return reject("Code generation problem: Unable to find the module: " + privateName);
@@ -82,13 +82,79 @@ function makeHash(viewFunction: string): string {
     return createHash("MD5").update(viewFunction).digest("hex");
 }
 
+export interface ViewFunctionConfig {
+    viewFunction: string;
+    output: string;
+    model?: any;
+    decoder?: string;
+    indent?: number;
+    newLines?: boolean;
+}
+
+export function elmStaticHtmlMultiple(
+    rootDir: string, moduleName: string, configs: ViewFunctionConfig[],
+    alreadyRun?: boolean, elmMakePath?: string, installMethod?: string): Promise<void[]> {
+    const moduleHash = makeHash(moduleName);
+
+    const dirPath = path.join(rootDir, renderDirName);
+
+    const models = configs.map((config) => config.model);
+
+    if (alreadyRun === true) {
+        const runs = models.map((config) => runElmAppConfig(moduleHash, config, rootDir));
+        // return runElmApp(moduleHash, rootDir, model).then(resolve);
+        return Promise.all(runs);
+    }
+
+    // try to load elm-package.json
+    const originalElmPackagePath = path.join(rootDir, "elm-package.json");
+    let elmPackage: any = null;
+    try {
+        elmPackage = JSON.parse(fs.readFileSync(originalElmPackagePath, "utf8"));
+    } catch (e) {
+        return Promise.reject(`Failed to load ${originalElmPackagePath}`);
+    }
+
+    makeCacheDir(dirPath);
+    wipeElmFromCache(dirPath);
+
+    const projectName = parseProjectName(elmPackage.repository);
+    elmPackage = fixElmPackage(rootDir, elmPackage);
+
+    const elmPackagePath = path.join(dirPath, "elm-package.json");
+    const privateMainPath = path.join(dirPath, `PrivateMain${moduleHash}.elm`);
+    const nativePath = path.join(dirPath, "Native/Jsonify.js");
+
+    fs.writeFileSync(elmPackagePath, JSON.stringify(elmPackage));
+
+    const templateConfigs = configs.map((config) => { return {
+           decoder: config.decoder,
+           indent: config.indent,
+           model: config.model,
+           newLines: config.newLines,
+           viewFunction: config.viewFunction,
+        viewHash: makeHash(config.viewFunction)};
+    },
+    );
+
+    const rendererFileContents = templates.generateRendererFileMany(moduleHash, templateConfigs);
+    fs.writeFileSync(privateMainPath, rendererFileContents);
+
+    const nativeString = templates.generateNativeModuleString(projectName);
+    fs.writeFileSync(nativePath, nativeString);
+
+    return installPackages(dirPath, installMethod).then(() => {
+        return runCompilerMany(moduleHash, privateMainPath, dirPath, configs, elmMakePath);
+    });
+}
+
 export default function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
     const viewHash = makeHash(viewFunction);
 
     const dirPath = path.join(rootDir, renderDirName);
 
     if (options.alreadyRun === true) {
-        return runElmApp(viewHash, dirPath, options.model);
+        return runElmApp(viewHash, viewHash, dirPath, options.model);
     }
 
     // try to load elm-package.json
@@ -160,7 +226,47 @@ function runCompiler(viewHash: string,
                         return reject(exitCode);
                     }
 
-                    return runElmApp(viewHash, rootDir, model).then(resolve);
+                    return runElmApp(viewHash, viewHash, rootDir, model).then(resolve);
+                },
+            );
+        });
+    });
+}
+
+function runElmAppConfig(moduleHash: string, config: ViewFunctionConfig, rootDir: string): Promise<void> {
+    return (runElmApp(moduleHash, makeHash(config.viewFunction), rootDir, config.model)
+        .then((generatedHtml) => fs.writeFileSync(config.output, generatedHtml))
+    );
+}
+
+function runCompilerMany(moduleHash: string,
+                         privateMainPath: string,
+                         rootDir: string, configs: ViewFunctionConfig[], elmMakePath?: string): Promise<void[]> {
+    const options: any = {
+        cwd: rootDir,
+        output: "elm.js",
+        yes: true,
+    };
+
+    if (elmMakePath) {
+        options.pathToMake = elmMakePath;
+    }
+
+    return new Promise((resolve, reject) => {
+        fs.readdir(rootDir, (err, files) => {
+            const actualFiles = files.filter((name) => name.indexOf("PrivateMain") === 0);
+
+            const compileProcess = compile(actualFiles, options);
+            compileProcess.on("exit",
+                (exitCode: number) => {
+                    if (exitCode !== 0) {
+                        return reject(exitCode);
+                    }
+
+                    const runs = configs.map((config) => runElmAppConfig(moduleHash, config, rootDir));
+
+                    // return runElmApp(moduleHash, rootDir, model).then(resolve);
+                    return Promise.all(runs).then(resolve);
                 },
             );
         });

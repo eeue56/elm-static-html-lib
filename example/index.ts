@@ -1,4 +1,5 @@
 import elmStaticHtml from "../index";
+import { elmStaticHtmlMultiple} from "../index";
 import * as fs from "fs";
 
 const model = { name: "Noah", age : 24 };
@@ -6,6 +7,7 @@ const secondModel = { name: "not noah", age: 74};
 const firstRunOptions = { model : model, decoder: "MyModule.decodeModel", alreadyRun: false };
 const secondRunOptions = { model : secondModel, decoder: "MyModule.decodeModel", alreadyRun: true };
 
+/*
 
 function runTwice() {
     elmStaticHtml(process.cwd(), "MyModule.view", firstRunOptions)
@@ -24,6 +26,8 @@ function runTwice() {
 
 runTwice();
 
+ */
+
 
 function runWithoutModel() {
     elmStaticHtml(process.cwd(), "MyModule.otherView", {})
@@ -34,6 +38,7 @@ function runWithoutModel() {
 
 runWithoutModel();
 
+/*
 
 function runLazyView() {
     elmStaticHtml(process.cwd(), "MyModule.lazyView", firstRunOptions)
@@ -45,3 +50,17 @@ function runLazyView() {
 } 
 
 runLazyView();
+
+ */
+function runMultiple() { 
+    const configs = 
+        [ { viewFunction: "MyModule.view", model: model
+            , decoder: "MyModule.decodeModel", output: "multiple1.html" } 
+            , { viewFunction: "MyModule.lazyView", model: model
+            , decoder: "MyModule.decodeModel", output: "multiple2.html" } 
+        ];
+
+    elmStaticHtmlMultiple(process.cwd(), "MyModule", configs);
+}
+
+runMultiple();
