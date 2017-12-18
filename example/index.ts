@@ -1,5 +1,4 @@
-import elmStaticHtml from "../index";
-import { elmStaticHtmlMultiple} from "../index";
+import * as elmStaticHtml from "../index";
 import * as fs from "fs";
 
 const model = { name: "Noah", age : 24 };
@@ -30,7 +29,7 @@ runTwice();
 
 
 function runWithoutModel() {
-    elmStaticHtml(process.cwd(), "MyModule.otherView", {})
+    elmStaticHtml.default(process.cwd(), "MyModule.otherView", {})
     .then((generatedHtml) => {
         fs.writeFileSync("output4.html", generatedHtml);
     });
@@ -60,7 +59,7 @@ function runMultiple() {
             , decoder: "MyModule.decodeModel", output: "multiple2.html" } 
         ];
 
-    elmStaticHtmlMultiple(process.cwd(), "MyModule", configs);
+    elmStaticHtml.grouped(process.cwd(), "MyModule", configs);
 }
 
 runMultiple();

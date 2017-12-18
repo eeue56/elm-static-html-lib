@@ -91,7 +91,9 @@ export interface ViewFunctionConfig {
     newLines?: boolean;
 }
 
-export function elmStaticHtmlMultiple(
+// compiles multiple view functions into one elm file
+// which is much faster if you're likely to need all of them
+export function grouped(
     rootDir: string, moduleName: string, configs: ViewFunctionConfig[],
     alreadyRun?: boolean, elmMakePath?: string, installMethod?: string): Promise<void[]> {
     const moduleHash = makeHash(moduleName);
@@ -102,7 +104,6 @@ export function elmStaticHtmlMultiple(
 
     if (alreadyRun === true) {
         const runs = models.map((config) => runElmAppConfig(moduleHash, config, rootDir));
-        // return runElmApp(moduleHash, rootDir, model).then(resolve);
         return Promise.all(runs);
     }
 
