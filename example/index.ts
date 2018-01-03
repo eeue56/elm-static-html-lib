@@ -37,6 +37,7 @@ function runWithoutModel() {
 
 runWithoutModel();
 
+/*
 function runLazyView() {
     elmStaticHtml.default(process.cwd(), "MyModule.lazyView", firstRunOptions)
     .then((generatedHtml) => {
@@ -45,6 +46,7 @@ function runLazyView() {
         console.log(err);
     });
 } 
+*/
 
 runLazyView();
 

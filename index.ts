@@ -215,7 +215,7 @@ function runCompiler(viewHash: string,
 
     return new Promise((resolve, reject) => {
         fs.readdir(rootDir, (err, files) => {
-            const actualFiles = files.filter((name) => name.indexOf(`PrivateMain${viewHash}`) === 0);
+            const actualFiles = files.filter((name) => name.indexOf("PrivateMain") === 0);
 
             const compileProcess = compile(actualFiles, options);
             compileProcess.on("exit",
@@ -250,7 +250,7 @@ function runCompilerMany(moduleHash: string,
 
     return new Promise((resolve, reject) => {
         fs.readdir(rootDir, (err, files) => {
-            const actualFiles = files.filter((name) => name.indexOf(`PrivateMain${moduleHash}`) === 0);
+            const actualFiles = files.filter((name) => name.indexOf("PrivateMain") === 0);
 
             const compileProcess = compile(actualFiles, options);
             compileProcess.on("exit",
