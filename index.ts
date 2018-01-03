@@ -39,7 +39,7 @@ function parseProjectName(repoName: string): string {
 function runElmApp(moduleHash: string, viewHash: string, dirPath: string, model: any): Promise<string> {
 
     return new Promise((resolve, reject) => {
-        const Elm = require(path.join(dirPath, `elm${moduleHash}.js`));
+        const Elm = require(path.join(dirPath, "elm.js"));
         const privateName = `PrivateMain${moduleHash}`;
 
         if (Object.keys(Elm).indexOf(privateName) === - 1) {
@@ -205,7 +205,7 @@ function runCompiler(viewHash: string,
                      privateMainPath: string, rootDir: string, model: any, elmMakePath?: string): Promise<string> {
     const options: any = {
         cwd: rootDir,
-        output: `elm${viewHash}.js`,
+        output: "elm.js",
         yes: true,
     };
 
@@ -240,7 +240,7 @@ function runCompilerMany(moduleHash: string,
                          rootDir: string, configs: ViewFunctionConfig[], elmMakePath?: string): Promise<string[]> {
     const options: any = {
         cwd: rootDir,
-        output: `elm${moduleHash}.js`,
+        output: "elm.js",
         yes: true,
     };
 
