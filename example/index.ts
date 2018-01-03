@@ -38,28 +38,29 @@ function runWithoutModel() {
 runWithoutModel();
 
 /*
-
 function runLazyView() {
-    elmStaticHtml(process.cwd(), "MyModule.lazyView", firstRunOptions)
+    elmStaticHtml.default(process.cwd(), "MyModule.lazyView", firstRunOptions)
     .then((generatedHtml) => {
         fs.writeFileSync("output5.html", generatedHtml);
     }).catch((err) =>{
         console.log(err);
     });
 } 
+*/
 
 runLazyView();
 
- */
-function runMultiple() { 
-    const configs = 
-        [ { viewFunction: "MyModule.view", model: model
-            , decoder: "MyModule.decodeModel", output: "multiple1.html" } 
-            , { viewFunction: "MyModule.lazyView", model: model
-            , decoder: "MyModule.decodeModel", output: "multiple2.html" } 
+function runMultiple() {
+    const configs =
+        [ { viewFunction: "MyModule.view", model, decoder: "MyModule.decodeModel", output: "multiple1.html" }
+        , { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", output: "multiple2.html" }
         ];
 
-    elmStaticHtml.grouped(process.cwd(), "MyModule", configs);
+    elmStaticHtml.grouped(process.cwd(), "MyModule", configs)
+        .then((generatedHtmls) => {
+            generatedHtmls
+                .map((generatedHtml, i) => fs.writeFileSync(configs[i].output, generatedHtml));
+        });
 }
 
 runMultiple();

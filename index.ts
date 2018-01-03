@@ -84,7 +84,6 @@ function makeHash(viewFunction: string): string {
 
 export interface ViewFunctionConfig {
     viewFunction: string;
-    output: string;
     model?: any;
     decoder?: string;
     indent?: number;
@@ -95,15 +94,13 @@ export interface ViewFunctionConfig {
 // which is much faster if you're likely to need all of them
 export function grouped(
     rootDir: string, moduleName: string, configs: ViewFunctionConfig[],
-    alreadyRun?: boolean, elmMakePath?: string, installMethod?: string): Promise<void[]> {
+    alreadyRun?: boolean, elmMakePath?: string, installMethod?: string): Promise<string[]> {
     const moduleHash = makeHash(moduleName);
 
     const dirPath = path.join(rootDir, renderDirName);
 
-    const models = configs.map((config) => config.model);
-
     if (alreadyRun === true) {
-        const runs = models.map((config) => runElmAppConfig(moduleHash, config, rootDir));
+        const runs = configs.map((config) => runElmAppConfig(moduleHash, config, dirPath));
         return Promise.all(runs);
     }
 
@@ -234,15 +231,13 @@ function runCompiler(viewHash: string,
     });
 }
 
-function runElmAppConfig(moduleHash: string, config: ViewFunctionConfig, rootDir: string): Promise<void> {
-    return (runElmApp(moduleHash, makeHash(config.viewFunction), rootDir, config.model)
-        .then((generatedHtml) => fs.writeFileSync(config.output, generatedHtml))
-    );
+function runElmAppConfig(moduleHash: string, config: ViewFunctionConfig, rootDir: string): Promise<string> {
+    return runElmApp(moduleHash, makeHash(config.viewFunction), rootDir, config.model);
 }
 
 function runCompilerMany(moduleHash: string,
                          privateMainPath: string,
-                         rootDir: string, configs: ViewFunctionConfig[], elmMakePath?: string): Promise<void[]> {
+                         rootDir: string, configs: ViewFunctionConfig[], elmMakePath?: string): Promise<string[]> {
     const options: any = {
         cwd: rootDir,
         output: "elm.js",
