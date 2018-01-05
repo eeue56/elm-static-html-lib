@@ -78,7 +78,7 @@ function makeHash(viewFunction: string): string {
 
 export interface ViewFunctionConfig {
     viewFunction: string;
-    filename: string;
+    fileOutputName: string;
     model?: any;
     decoder?: string;
     indent?: number;
@@ -102,7 +102,7 @@ export function multiple(
     const dirPath = path.join(rootDir, renderDirName);
 
     if (alreadyRun === true) {
-        const filenamesAndModels = configs.map((config) => [config.filename, config.model]);
+        const filenamesAndModels = configs.map((config) => [config.fileOutputName, config.model]);
         return runElmApp(moduleHash, dirPath, filenamesAndModels);
     }
 
@@ -152,7 +152,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     const viewHash = makeHash(viewFunction);
 
     const config = { decoder: options.decoder
-        , filename: "placeholder"
+        , fileOutputName: "placeholder"
         , indent: options.indent
         , model: options.model
         , newLines: options.newLines
@@ -162,7 +162,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     const dirPath = path.join(rootDir, renderDirName);
 
     if (options.alreadyRun === true) {
-        return runElmApp(viewHash, dirPath, [[config.filename, options.model]])
+        return runElmApp(viewHash, dirPath, [[config.fileOutputName, options.model]])
             .then((outputs) => outputs[0].generatedHtml);
     }
 
@@ -238,7 +238,7 @@ function runCompiler(moduleHash: string,
                     }
 
                     const runs = runElmApp(moduleHash, rootDir,
-                        configs.map((config) => [config.filename, config.model]));
+                        configs.map((config) => [config.fileOutputName, config.model]));
 
                     return runs.then(resolve);
                 },

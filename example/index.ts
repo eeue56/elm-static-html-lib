@@ -45,9 +45,9 @@ runLazyView();
 
 function runMultiple() {
     const configs =
-        [ { viewFunction: "MyModule.view", model, decoder: "MyModule.decodeModel", filename: "grouped1.html" }
-        , { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", filename: "grouped2.html" }
-        , { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", filename: "grouped3.html" }
+        [ { viewFunction: "MyModule.view", model, decoder: "MyModule.decodeModel", fileOutputName: "grouped1.html" }
+        , { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", fileOutputName: "grouped2.html" }
+        , { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", fileOutputName: "grouped3.html" }
         ];
 
     elmStaticHtml.multiple(process.cwd(), configs)
