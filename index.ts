@@ -36,7 +36,7 @@ function parseProjectName(repoName: string): string {
         .replace("/", "$");
 }
 
-function runElmApp(moduleHash: string, dirPath: string, models: any[]): Promise<string[]> {
+function runElmApp(moduleHash: string, dirPath: string, filenamesAndModels: any[][]): Promise<Array<[string, string]>> {
 
     return new Promise((resolve, reject) => {
         const Elm = require(path.join(dirPath, "elm.js"));
@@ -46,7 +46,7 @@ function runElmApp(moduleHash: string, dirPath: string, models: any[]): Promise<
             return reject("Code generation problem: Unable to find the module: " + privateName);
         }
 
-        const elmApp = Elm[privateName].worker(models);
+        const elmApp = Elm[privateName].worker(filenamesAndModels);
 
         elmApp.ports[`htmlOut${moduleHash}`].subscribe(resolve);
     });
@@ -78,6 +78,7 @@ function makeHash(viewFunction: string): string {
 
 export interface ViewFunctionConfig {
     viewFunction: string;
+    filename: string;
     model?: any;
     decoder?: string;
     indent?: number;
@@ -88,13 +89,14 @@ export interface ViewFunctionConfig {
 // which is much faster if you're likely to need all of them
 export function multiple(
     rootDir: string, moduleName: string, configs: ViewFunctionConfig[],
-    alreadyRun?: boolean, elmMakePath?: string, installMethod?: string): Promise<string[]> {
+    alreadyRun?: boolean, elmMakePath?: string, installMethod?: string): Promise<Array<[string, string]>> {
     const moduleHash = makeHash(moduleName);
 
     const dirPath = path.join(rootDir, renderDirName);
 
     if (alreadyRun === true) {
-        return runElmApp(moduleHash, dirPath, configs);
+        const filenamesAndModels = configs.map((config) => [config.filename, config.model]);
+        return runElmApp(moduleHash, dirPath, filenamesAndModels);
     }
 
     // try to load elm-package.json
@@ -143,6 +145,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     const viewHash = makeHash(viewFunction);
 
     const config = { decoder: options.decoder
+        , filename: "placeholder"
         , indent: options.indent
         , newLines: options.newLines
         , viewFunction
@@ -151,8 +154,8 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
     const dirPath = path.join(rootDir, renderDirName);
 
     if (options.alreadyRun === true) {
-        return runElmApp(viewHash, dirPath, [options.model])
-            .then((outputs) => outputs[0]);
+        return runElmApp(viewHash, dirPath, [[config.filename, options.model]])
+            .then((outputs) => outputs[0][1]);
     }
 
     // try to load elm-package.json
@@ -184,7 +187,7 @@ export default function elmStaticHtml(rootDir: string, viewFunction: string, opt
 
     return installPackages(dirPath, options.installMethod).then(() => {
         return runCompiler(viewHash, privateMainPath, dirPath, [config], options.elmMakePath)
-            .then((results) => results[0]);
+            .then((results) => results[0][1]);
     });
 }
 
@@ -203,7 +206,8 @@ function fixElmPackage(workingDir: string, elmPackage: any) {
 
 function runCompiler(moduleHash: string,
                      privateMainPath: string,
-                     rootDir: string, configs: ViewFunctionConfig[], elmMakePath?: string): Promise<string[]> {
+                     rootDir: string,
+                     configs: ViewFunctionConfig[], elmMakePath?: string): Promise<Array<[string, string]>> {
     const options: any = {
         cwd: rootDir,
         output: "elm.js",
@@ -225,7 +229,8 @@ function runCompiler(moduleHash: string,
                         return reject(exitCode);
                     }
 
-                    const runs = runElmApp(moduleHash, rootDir, configs.map((config) => config.model));
+                    const runs = runElmApp(moduleHash, rootDir,
+                        configs.map((config) => [config.filename, config.model]));
 
                     return runs.then(resolve);
                 },

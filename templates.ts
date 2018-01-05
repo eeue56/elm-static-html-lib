@@ -132,7 +132,7 @@ export function generateRendererFile(hash: string, configs: ViewFunctionConfig[]
         .map((config) => `render${config.viewHash}`)
             .join(", ");
 
-    const port = `port htmlOut${hash} : List String -> Cmd msg`;
+    const port = `port htmlOut${hash} : List (String, String) -> Cmd msg`;
 
     return `
 port module PrivateMain${hash} exposing (..)
@@ -153,10 +153,10 @@ ${renderCommands}
 renderers : List (Json.Value -> String)
 renderers = [ ${renderersList} ]
 
-init : List Json.Value -> ((), Cmd msg)
+init : List (String, Json.Value) -> ((), Cmd msg)
 init models =
     let command =
-            List.map2 (\\renderer model -> renderer model) renderers models
+            List.map2 (\\renderer (identifier, model) -> (identifier, renderer model)) renderers models
                 |> htmlOut${hash}
     in
         ( (), command )
