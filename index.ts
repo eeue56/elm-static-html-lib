@@ -86,7 +86,7 @@ export interface ViewFunctionConfig {
 
 // compiles multiple view functions into one elm file
 // which is much faster if you're likely to need all of them
-export function grouped(
+export function multiple(
     rootDir: string, moduleName: string, configs: ViewFunctionConfig[],
     alreadyRun?: boolean, elmMakePath?: string, installMethod?: string): Promise<string[]> {
     const moduleHash = makeHash(moduleName);

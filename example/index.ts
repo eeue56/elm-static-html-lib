@@ -43,18 +43,18 @@ function runLazyView() {
 
 runLazyView();
 
-function runGrouped() {
+function runMultiple() {
     const configs =
         [ { viewFunction: "MyModule.view", model, decoder: "MyModule.decodeModel", output: "grouped1.html" }
         , { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", output: "grouped2.html" }
         , { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", output: "grouped3.html" }
         ];
 
-    elmStaticHtml.grouped(process.cwd(), "MyModule", configs)
+    elmStaticHtml.multiple(process.cwd(), "MyModule", configs)
         .then((generatedHtmls) => {
             generatedHtmls
                 .map((generatedHtml, i) => fs.writeFileSync(configs[i].output, generatedHtml));
         });
 }
 
-runGrouped();
+runMultiple();
