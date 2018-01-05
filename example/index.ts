@@ -50,10 +50,10 @@ function runMultiple() {
         , { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", filename: "grouped3.html" }
         ];
 
-    elmStaticHtml.multiple(process.cwd(), "MyModule", configs)
+    elmStaticHtml.multiple(process.cwd(), configs)
         .then((generatedHtmls) => {
             generatedHtmls
-                .map((generatedHtml, i) => fs.writeFileSync(configs[i].output, generatedHtml));
+                .map((output) => fs.writeFileSync(output.fileOutputName, output.generatedHtml));
         });
 }
 
