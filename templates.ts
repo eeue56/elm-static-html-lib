@@ -31,58 +31,13 @@ function functionName(functionLine: string): string {
     return functionLine.substr(functionLine.lastIndexOf("."));
 }
 
-function init(configs: ViewFunctionConfig[]): string {
-    const renderNames = configs.map((config) => "render" + config.viewHash);
-    return `
-init : Json.Value -> ((), Cmd msg)
-init values =
-    let command =
-            [ ${ renderNames } ]
-                |> List.map (\\renderer -> renderer values)
-                |> Cmd.batch
-    in
-        ((), command)
-`;
-
-}
-
-function initBodyWithDecoder(viewHash: string, viewFunction: string, decoderName: string): string {
-    return `
-init : Json.Value -> ((), Cmd msg)
-init values =
-    case Json.decodeValue ${decoderName} values of
-        Err err -> ((), htmlOut${viewHash} ("ERROR:" ++ err))
-        Ok model ->
-            ((), render${viewHash} model)
-`;
-}
-    /*
-    return `
-init : Json.Value -> ((), Cmd msg)
-init values =
-    case Json.decodeValue ${decoderName} values of
-        Err err -> ((), htmlOut${viewHash} ("ERROR:" ++ err))
-        Ok model ->
-            ((), htmlOut${viewHash} <| decode <| ${viewFunction} model)
-`;
-}
-     */
-
-function initBodyWithoutDecoder(viewHash: string, viewFunction: string): string {
-    return `
-init : Json.Value -> ((), Cmd msg)
-init _ =
-    ((), render${viewHash})
-`;
-}
-    /*
-    return `
-init : Json.Value -> ((), Cmd msg)
-init _ =
-    ((), htmlOut${viewHash} <| decode <| ${viewFunction})
-`;
-}
-     */
+const decode = `
+decode : FormatOptions -> Html msg -> String
+decode options view =
+    case Json.decodeValue decodeElmHtml (asJsonView view) of
+        Err str -> "ERROR:" ++ str
+        Ok str -> nodeToStringWithOptions options str
+            `;
 
 function generateOptionsSet(newLines: boolean, indent: number): string {
     let newLinesStr;
@@ -108,61 +63,51 @@ export interface ViewFunctionConfig {
 
 function renderCommandWithDecoder(viewHash: string, viewFunction: string, decoderName: string, optionsSet: string) {
     return `
-render${viewHash} : Json.Value -> Cmd msg
+render${viewHash} : Json.Value -> String
 render${viewHash} values =
     let
         ${optionsSet}
-
-        decode : Html msg -> String
-        decode view =
-            case Json.decodeValue decodeElmHtml (asJsonView view) of
-                Err str -> "ERROR:" ++ str
-                Ok str -> nodeToStringWithOptions options str
     in
         case Json.decodeValue ${decoderName} values of
             Err err ->
-                htmlOut${viewHash} ("I could not decode the argument for ${viewFunction}:" ++ err)
+                "I could not decode the argument for ${viewFunction}:" ++ err
 
             Ok model ->
-                htmlOut${viewHash} <| decode <| ${viewFunction} model
+                (decode options) <| ${viewFunction} model
         `;
         }
 
 function renderCommandWithoutDecoder(viewHash: string, viewFunction: string, optionsSet: string) {
     return `
-render${viewHash} : Json.Value -> Cmd msg
+render${viewHash} : Json.Value -> String
 render${viewHash} _ =
     let
         ${optionsSet}
-
-        decode : Html msg -> String
-        decode view =
-            case Json.decodeValue decodeElmHtml (asJsonView view) of
-                Err str -> "ERROR:" ++ str
-                Ok str -> nodeToStringWithOptions options str
     in
-        htmlOut${viewHash} <| decode <| ${viewFunction}
+        (decode options) <| ${viewFunction}
         `;
 }
 
 function generateBody(config: ViewFunctionConfig): string {
     const optionsSet = generateOptionsSet(config.newLines, config.indent);
     if (config.decoder) {
+        console.log("withDecoder ->", config.decoder, config.viewFunction);
         return renderCommandWithDecoder(config.viewHash, config.viewFunction, config.decoder, optionsSet);
     } else {
+        console.log("withoutDecoder ->", config.decoder, config.viewFunction);
         return renderCommandWithoutDecoder(config.viewHash, config.viewFunction, optionsSet);
     }
 }
 
-function removeDuplicates(arrArg: any[]): any[] {
-  return arrArg.filter((elem, pos, arr) => {
-    return arr.indexOf(elem) === pos;
-  });
+function uniqueBy(toKey: (x: any) => any, array: any[]): any[] {
+    const keys = array.map(toKey);
+
+    return array.filter((elem, pos, arr) => {
+        return keys.indexOf(toKey(elem)) === pos;
+    });
 }
 
-// this is our render's file contents
-// basically just boilerplate
-export function generateRendererFileMany(hash: string, configs: ViewFunctionConfig[]): string {
+export function generateRendererFile(hash: string, configs: ViewFunctionConfig[]): string {
     const viewImports =
         configs
             .map((config) => importLine(config.viewFunction))
@@ -175,54 +120,57 @@ export function generateRendererFileMany(hash: string, configs: ViewFunctionConf
 
     const imports = viewImports + "\n" + decoderImports;
 
-    const initBody = init(configs);
+    const configsWithUniqueView = uniqueBy((x) => x.viewHash, configs);
 
     const renderCommands =
-        configs
+        configsWithUniqueView
             .map(generateBody)
             .join("\n\n");
 
-    // duplicate ports are now allowed, so remove duplicates
-    const uniqueViewHashes = removeDuplicates(configs.map((config) => config.viewHash));
+    const renderersList =
+        configs
+        .map((config) => `render${config.viewHash}`)
+            .join(", ");
 
-    const ports =
-        uniqueViewHashes
-            .map((viewHash) => `port htmlOut${viewHash} : String -> Cmd msg`)
-            .join("\n");
+    const port = `port htmlOut${hash} : List String -> Cmd msg`;
 
-    const rendererFileContents = `
+    return `
 port module PrivateMain${hash} exposing (..)
 
 import Platform
 import Html exposing (Html)
 import ElmHtml.InternalTypes exposing (decodeElmHtml)
-import ElmHtml.ToString exposing (nodeToStringWithOptions, defaultFormatOptions)
+import ElmHtml.ToString exposing (FormatOptions, nodeToStringWithOptions, defaultFormatOptions)
 import Json.Decode as Json
 import Native.Jsonify
 
 ${imports}
 
+${decode}
+
+${renderCommands}
+
+renderers : List (Json.Value -> String)
+renderers = [ ${renderersList} ]
+
+init : List Json.Value -> ((), Cmd msg)
+init models =
+    let command =
+            List.map2 (\\renderer model -> renderer model) renderers models
+                |> htmlOut${hash}
+    in
+        ( (), command )
+
 
 asJsonView : Html msg -> Json.Value
 asJsonView = Native.Jsonify.stringify
 
-${renderCommands}
-
-${initBody}
+${port}
 
 main = Platform.programWithFlags
     { init = init
     , update = (\\_ b -> (b, Cmd.none))
     , subscriptions = (\\_ -> Sub.none)
     }
-
-${ports}
-`;
-    return rendererFileContents;
-}
-
-export function generateRendererFile(
-    viewHash: string, viewFunction: string, decoderName: string, newLines: boolean, indent: number): string {
-    const config = { viewFunction, viewHash, decoder: decoderName, newLines, indent };
-    return generateRendererFileMany(viewHash, [config]);
+    `;
 }
