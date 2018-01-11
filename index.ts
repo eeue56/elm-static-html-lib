@@ -25,13 +25,13 @@ function makeCacheDir(dirPath: string) {
     try {
         fs.mkdirSync(dirPath);
     } catch (e) {
-        if (!process.env.HIDE_WARNINGS) console.log(`Failed to make ${dirPath}/Native due to`, e);
+        if (e.code !== 'EEXIST' && !process.env.HIDE_WARNINGS) console.log(`Failed to make ${dirPath}/Native due to`, e);
     }
 
     try {
         fs.mkdirSync(path.join(dirPath, "Native"));
     } catch (e) {
-        if (!process.env.HIDE_WARNINGS) console.log(`Failed to make ${dirPath}/Native due to`, e);
+        if (e.code !== 'EEXIST' && !process.env.HIDE_WARNINGS) console.log(`Failed to make ${dirPath}/Native due to`, e);
     }
 }
 
