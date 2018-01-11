@@ -24,11 +24,15 @@ function makeCacheDir(dirPath: string) {
     // ignore these and try to continue anyway
     try {
         fs.mkdirSync(dirPath);
-    } catch (e) {}
+    } catch (e) {
+        if (!process.env.HIDE_WARNINGS) console.log(`Failed to make ${dirPath}/Native due to`, e);
+    }
 
     try {
         fs.mkdirSync(path.join(dirPath, "Native"));
-    } catch (e) {}
+    } catch (e) {
+        if (!process.env.HIDE_WARNINGS) console.log(`Failed to make ${dirPath}/Native due to`, e);
+    }
 }
 
 function parseProjectName(repoName: string): string {

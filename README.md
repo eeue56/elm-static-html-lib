@@ -88,3 +88,5 @@ Check out the [example](https://github.com/eeue56/elm-static-html-lib/tree/maste
 ## Production
 
 If you are running this in production, you may want to only generate the boilerplate files once. You can do that by setting the option `alreadyRun` to true. When `alreadyRun` is true, the Elm app is only started -- no boilerplate is generated.
+
+You may want to hide warnings, which you can do by setting `HIDE_WARNINGS=true` in your env.
