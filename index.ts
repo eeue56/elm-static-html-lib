@@ -21,12 +21,14 @@ export interface Options {
 
 function makeCacheDir(dirPath: string) {
     // make our cache dir
+    // ignore these and try to continue anyway
     try {
         fs.mkdirSync(dirPath);
+    } catch (e) {}
+
+    try {
         fs.mkdirSync(path.join(dirPath, "Native"));
-    } catch (e) {
-        // ignore this and try to continue anyway
-    }
+    } catch (e) {}
 }
 
 function parseProjectName(repoName: string): string {
