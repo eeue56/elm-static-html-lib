@@ -1,6 +1,6 @@
 {
   "name": "elm-static-html-lib",
-  "version": "0.0.9-alpha.3",
+  "version": "0.0.9-alpha.4",
   "description": "Generate HTML from Elm views ",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
