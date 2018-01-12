@@ -148,16 +148,17 @@ export function multiple(
     });
 }
 
-export default function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
+export function elmStaticHtml(rootDir: string, viewFunction: string, options: Options): Promise<string> {
     const viewHash = makeHash(viewFunction);
 
-    const config = { decoder: options.decoder
-        , fileOutputName: "placeholder"
-        , indent: options.indent
-        , model: options.model
-        , newLines: options.newLines
-        , viewFunction
-        , viewHash};
+    const config = { decoder: options.decoder,
+        fileOutputName: "placeholder",
+        indent: options.indent,
+        model: options.model,
+        newLines: options.newLines,
+        viewFunction,
+        viewHash,
+    };
 
     const dirPath = path.join(rootDir, renderDirName);
 

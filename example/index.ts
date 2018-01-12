@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import * as elmStaticHtml from "../index";
+import { elmStaticHtml, multiple } from "../index";
 
 const model = { name: "Noah", age : 24 };
 const secondModel = { name: "not noah", age: 74};
@@ -7,13 +7,13 @@ const firstRunOptions = { model : model, decoder: "MyModule.decodeModel", alread
 const secondRunOptions = { model : secondModel, decoder: "MyModule.decodeModel", alreadyRun: true };
 
 function runTwice() {
-    elmStaticHtml.default(process.cwd(), "MyModule.view", firstRunOptions)
+    elmStaticHtml(process.cwd(), "MyModule.view", firstRunOptions)
     .then((generatedHtml) => {
         fs.writeFileSync("output.html", generatedHtml);
-        elmStaticHtml.default(process.cwd(), "MyModule.view", secondRunOptions)
+        elmStaticHtml(process.cwd(), "MyModule.view", secondRunOptions)
         .then((generatedHtml) => {
             fs.writeFileSync("output2.html", generatedHtml);
-            elmStaticHtml.default(process.cwd(), "MyModule.view", secondRunOptions)
+            elmStaticHtml(process.cwd(), "MyModule.view", secondRunOptions)
             .then((generatedHtml) => {
                 fs.writeFileSync("output3.html", generatedHtml);
             });
@@ -24,7 +24,7 @@ function runTwice() {
 runTwice();
 
 function runWithoutModel() {
-    elmStaticHtml.default(process.cwd(), "MyModule.otherView", {})
+    elmStaticHtml(process.cwd(), "MyModule.otherView", {})
     .then((generatedHtml) => {
         fs.writeFileSync("output4.html", generatedHtml);
     });
@@ -33,7 +33,7 @@ function runWithoutModel() {
 runWithoutModel();
 
 function runLazyView() {
-    elmStaticHtml.default(process.cwd(), "MyModule.lazyView", firstRunOptions)
+    elmStaticHtml(process.cwd(), "MyModule.lazyView", firstRunOptions)
     .then((generatedHtml) => {
         fs.writeFileSync("output5.html", generatedHtml);
     }).catch((err) => {
@@ -50,7 +50,7 @@ function runMultiple() {
         , { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", fileOutputName: "grouped3.html" }
         ];
 
-    elmStaticHtml.multiple(process.cwd(), configs)
+    multiple(process.cwd(), configs)
         .then((generatedHtmls) => {
             generatedHtmls
                 .map((output) => fs.writeFileSync(output.fileOutputName, output.generatedHtml));
