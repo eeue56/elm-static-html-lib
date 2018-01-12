@@ -91,10 +91,8 @@ render${viewHash} _ =
 function generateBody(config: ViewFunctionConfig): string {
     const optionsSet = generateOptionsSet(config.newLines, config.indent);
     if (config.decoder) {
-        console.log("withDecoder ->", config.decoder, config.viewFunction);
         return renderCommandWithDecoder(config.viewHash, config.viewFunction, config.decoder, optionsSet);
     } else {
-        console.log("withoutDecoder ->", config.decoder, config.viewFunction);
         return renderCommandWithoutDecoder(config.viewHash, config.viewFunction, optionsSet);
     }
 }
