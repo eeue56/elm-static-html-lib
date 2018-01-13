@@ -68,15 +68,73 @@ elmStaticHtml("/absolute/path/to/elm-package.json", "MyModule.view", options)
 
 ```
 
+## multiple at once
+
+When you want to render many views - particularly when they share dependencies - it is faster to use the `multiple` function.
+
+```javascript
+const configs = [ 
+    { viewFunction: "MyModule.view", model, decoder: "MyModule.decodeModel", fileOutputName: "grouped1.html" }, 
+    { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", fileOutputName: "grouped2.html" }, 
+    ];
+
+elmStaticHtml.multiple("/absolute/path/to/elm-package.json", configs)
+.then((generatedHtmls) => {
+    generatedHtmls
+        .map((output) => fs.writeFileSync(output.fileOutputName, output.generatedHtml));
+});
+```
+
+
 ### API description
 
 ```js
 elmStaticHtml(packagePath, viewFunction, options)
 ```
 
-- **packagePath** *(String)*: an absolute path to the `elm-package.json` of your project.
+- **packagePath** *(String)*: An absolute path to the `elm-package.json` of your project.
 - **viewFunction** *(String)*: [Qualified name](https://guide.elm-lang.org/reuse/modules.html) to the view function. Format `<ModuleName>.<functionName>`
 - **options** *(object)*: A map of options. Can be either empty or contain a model and a qualified decoder name. See above for usage details.
+
+```js
+elmStaticHtml.multiple(packagePath, configs)
+```
+
+- **packagePath** *(String)*: An absolute path to the `elm-package.json` of your project.
+- **configs** *ViewFunctionConfig[]*: An array of configurations, see below.
+- **alreadyRun?** *(Boolean)*: When true, doesn't generate boilerplate again. Useful if only your models have changed, and not your elm code.
+- **elmMakePath?** *(String)*: Specify the path to elm-make.
+- **installMethod** *(String)*: Specify a custom package installation command.
+
+**returns** *Output*: An object containing the generated html and the outputFileName.
+
+```typescript
+export interface ViewFunctionConfig {
+    viewFunction: string;
+    fileOutputName: string;
+    model?: any;
+    decoder?: string;
+    indent?: number;
+    newLines?: boolean;
+}
+```
+
+- **viewFunction**: [Qualified name](https://guide.elm-lang.org/reuse/modules.html) to the view function. Format `<ModuleName>.<functionName>`
+- **fileOutputName**: File name. This value is not touched and given back to `Output`, to make saving the generated html easier
+- **model?**: Optional object that is given as the model to your view function
+- **decoder?**: [Qualified name](https://guide.elm-lang.org/reuse/modules.html) to the decoder for `model`. Format `<ModuleName>.<decoderName>`
+- **indent?**: Optional formatting flag. Sets whether the generated html should be indented (default true)
+- **newLines?**: Optional formatting flag. Sets whether new tags should start on a new line when (default true)
+
+```typescript
+export interface Output {
+    generatedHtml: string;
+    fileOutputName: string;
+}
+```
+
+- **generatedHtml**: The html that your view has produced
+- **fileOutputName**: A file name that is threaded through for convenience
 
 
 ### More examples
