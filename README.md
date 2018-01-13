@@ -18,7 +18,7 @@ In this example, we use `decodeModel` to turn the passed JSON into a model that 
 
 ```javascript
 
-import elmStaticHtml from "elm-static-html-lib";
+import { elmStaticHtml } from "elm-static-html-lib";
 
 
 const model = { name: "Noah", age : 24 };
@@ -37,7 +37,7 @@ In this case, our view has the type `Html msg`.
 
 ```javascript
 
-import elmStaticHtml from "elm-static-html-lib";
+import { elmStaticHtml } from "elm-static-html-lib";
 
 
 const options = { };
@@ -55,7 +55,7 @@ In order to truly match what Elm generates at runtime, you may not want to have 
 
 ```javascript
 
-import elmStaticHtml from "elm-static-html-lib";
+import { elmStaticHtml } from "elm-static-html-lib";
 
 
 const model = { name: "Noah", age : 24 };
@@ -148,3 +148,12 @@ Check out the [example](https://github.com/eeue56/elm-static-html-lib/tree/maste
 If you are running this in production, you may want to only generate the boilerplate files once. You can do that by setting the option `alreadyRun` to true. When `alreadyRun` is true, the Elm app is only started -- no boilerplate is generated.
 
 You may want to hide warnings, which you can do by setting `HIDE_WARNINGS=true` in your env.
+
+
+## Changelog
+
+
+### 0.1.0
+
+- elmStaticHtml now exposes two functions with no default, e.g `import { elmStaticHtml, multiple }`
+- `multiple` added to provide a way to compile multiple views in a single pass
