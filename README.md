@@ -18,13 +18,13 @@ In this example, we use `decodeModel` to turn the passed JSON into a model that 
 
 ```javascript
 
-import { elmStaticHtml } from "elm-static-html-lib";
+const {elmStaticHtml} = require('elm-static-html-lib');
 
 
 const model = { name: "Noah", age : 24 };
 const options = { model : model, decoder: "MyModule.decodeModel" };
 
-elmStaticHtml("/absolute/path/to/elm-package.json", "MyModule.view", options)
+elmStaticHtml("./", "MyModule.view", options)
 .then((generatedHtml) => {
     fs.writeFileSync("output.html", generatedHtml);
 });
@@ -37,12 +37,12 @@ In this case, our view has the type `Html msg`.
 
 ```javascript
 
-import { elmStaticHtml } from "elm-static-html-lib";
+const {elmStaticHtml} = require('elm-static-html-lib');
 
 
 const options = { };
 
-elmStaticHtml("/absolute/path/to/elm-package.json", "MyModule.view", options)
+elmStaticHtml("./", "MyModule.view", options)
 .then((generatedHtml) => {
     fs.writeFileSync("output.html", generatedHtml);
 });
@@ -55,13 +55,13 @@ In order to truly match what Elm generates at runtime, you may not want to have 
 
 ```javascript
 
-import { elmStaticHtml } from "elm-static-html-lib";
+const {elmStaticHtml} = require('elm-static-html-lib');
 
 
 const model = { name: "Noah", age : 24 };
 const options = { model : model, decoder: "MyModule.decodeModel", newLines: false, indent: 0 };
 
-elmStaticHtml("/absolute/path/to/elm-package.json", "MyModule.view", options)
+elmStaticHtml("./", "MyModule.view", options)
 .then((generatedHtml) => {
     fs.writeFileSync("output.html", generatedHtml);
 });
@@ -78,7 +78,7 @@ const configs = [
     { viewFunction: "MyModule.lazyView", model, decoder: "MyModule.decodeModel", fileOutputName: "grouped2.html" }, 
     ];
 
-elmStaticHtml.multiple("/absolute/path/to/elm-package.json", configs)
+elmStaticHtml.multiple("./", configs)
 .then((generatedHtmls) => {
     generatedHtmls
         .map((output) => fs.writeFileSync(output.fileOutputName, output.generatedHtml));
