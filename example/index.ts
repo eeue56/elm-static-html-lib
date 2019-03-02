@@ -10,15 +10,16 @@ function runTwice() {
     elmStaticHtml(process.cwd(), "MyModule.view", firstRunOptions)
     .then((generatedHtml) => {
         fs.writeFileSync("output.html", generatedHtml);
-        elmStaticHtml(process.cwd(), "MyModule.view", secondRunOptions)
+        return elmStaticHtml(process.cwd(), "MyModule.view", secondRunOptions)
         .then((generatedHtml) => {
             fs.writeFileSync("output2.html", generatedHtml);
-            elmStaticHtml(process.cwd(), "MyModule.view", secondRunOptions)
+            return elmStaticHtml(process.cwd(), "MyModule.view", secondRunOptions)
             .then((generatedHtml) => {
                 fs.writeFileSync("output3.html", generatedHtml);
             });
         });
-    });
+    })
+    .catch(console.error);
 }
 
 runTwice();
@@ -27,7 +28,8 @@ function runWithoutModel() {
     elmStaticHtml(process.cwd(), "MyModule.otherView", {})
     .then((generatedHtml) => {
         fs.writeFileSync("output4.html", generatedHtml);
-    });
+    })
+    .catch(console.error);
 }
 
 runWithoutModel();
@@ -37,7 +39,7 @@ function runLazyView() {
     .then((generatedHtml) => {
         fs.writeFileSync("output5.html", generatedHtml);
     }).catch((err) => {
-        console.log(err);
+        console.error(err);
     });
 }
 
@@ -54,7 +56,8 @@ function runMultiple() {
         .then((generatedHtmls) => {
             generatedHtmls
                 .map((output) => fs.writeFileSync(output.fileOutputName, output.generatedHtml));
-        });
+        })
+        .catch(console.error);
 }
 
 runMultiple();

@@ -1,28 +1,3 @@
-// literally the only reason why this has to be an npm package
-export function generateNativeModuleString(projectName: string): string {
-    const fixedProjectName = projectName.replace(/-/g, "_");
-
-    const nativeString = `
-function forceThunks(vNode) {
-    if (typeof vNode !== "undefined" && vNode.ctor === "_Tuple2" && !vNode.node) {
-        vNode._1 = forceThunks(vNode._1);
-    }
-    if (typeof vNode !== 'undefined' && vNode.type === 'thunk' && !vNode.node) {
-        vNode.node = vNode.thunk.apply(vNode.thunk, vNode.args);
-    }
-    if (typeof vNode !== 'undefined' && typeof vNode.children !== 'undefined') {
-        vNode.children = vNode.children.map(forceThunks);
-    }
-    return vNode;
-}
-
-var _${fixedProjectName}$Native_Jsonify = {
-    stringify: function(thing) { return forceThunks(thing) }
-};`;
-
-    return nativeString;
-}
-
 function importLine(fullFunctionName: string): string {
     return "import " + fullFunctionName.substr(0, fullFunctionName.lastIndexOf("."));
 }
@@ -34,8 +9,8 @@ function functionName(functionLine: string): string {
 const decode = `
 decode : FormatOptions -> Html msg -> String
 decode options view =
-    case Json.decodeValue decodeElmHtml (asJsonView view) of
-        Err str -> "ERROR:" ++ str
+    case Json.decodeValue (decodeElmHtml (\\_ \_ -> Json.succeed ())) (asJsonView view) of
+        Err err -> "ERROR:" ++ Json.errorToString err
         Ok str -> nodeToStringWithOptions options str
             `;
 
@@ -140,7 +115,7 @@ import Html exposing (Html)
 import ElmHtml.InternalTypes exposing (decodeElmHtml)
 import ElmHtml.ToString exposing (FormatOptions, nodeToStringWithOptions, defaultFormatOptions)
 import Json.Decode as Json
-import Native.Jsonify
+import Json.Encode as JE
 
 ${imports}
 
@@ -167,11 +142,11 @@ init models =
 
 
 asJsonView : Html msg -> Json.Value
-asJsonView = Native.Jsonify.stringify
+asJsonView x = JE.string "REPLACE_ME_WITH_JSON_STRINGIFY"
 
 ${port}
 
-main = Platform.programWithFlags
+main = Platform.worker
     { init = init
     , update = (\\_ b -> (b, Cmd.none))
     , subscriptions = (\\_ -> Sub.none)

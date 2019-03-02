@@ -23,7 +23,7 @@ view model =
     Html.div
         []
         [ Html.text <| "I am " ++ model.name
-        , Html.text <| "And I am " ++ toString model.age ++ " years old."
+        , Html.text <| "And I am " ++ String.fromInt model.age ++ " years old."
         ]
 
 

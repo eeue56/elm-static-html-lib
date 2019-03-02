@@ -35,24 +35,26 @@ function makeCacheDir(dirPath: string) {
     }
 }
 
-function parseProjectName(repoName: string): string {
-    return repoName
-        .replace("https://github.com/", "")
-        .replace(".git", "")
-        .replace("/", "$");
-}
 
 function runElmApp(moduleHash: string, dirPath: string, filenamesAndModels: any[][]): Promise<Output[]> {
 
     return new Promise((resolve, reject) => {
-        const Elm = require(path.join(dirPath, "elm.js"));
+        const elmFile = path.join(dirPath, "elm.js");
+        
+        // Find and replace the placeholder
+        const elmFileContent = fs.readFileSync(elmFile, 'utf-8');
+        fs.writeFileSync(elmFile, elmFileContent.replace("return elm$json$Json$Encode$string('REPLACE_ME_WITH_JSON_STRINGIFY')", 'return x'));
+
+        const Elm = require(elmFile);
         const privateName = `PrivateMain${moduleHash}`;
 
-        if (Object.keys(Elm).indexOf(privateName) === - 1) {
+        if (Object.keys(Elm.Elm).indexOf(privateName) === - 1) {
             return reject("Code generation problem: Unable to find the module: " + privateName);
         }
 
-        const elmApp = Elm[privateName].worker(filenamesAndModels);
+        const elmApp = Elm.Elm[privateName].init({
+            flags: filenamesAndModels
+        });
 
         elmApp.ports[`htmlOut${moduleHash}`].subscribe(resolve);
     });
@@ -112,8 +114,8 @@ export function multiple(
         return runElmApp(moduleHash, dirPath, filenamesAndModels);
     }
 
-    // try to load elm-package.json
-    const originalElmPackagePath = path.join(rootDir, "elm-package.json");
+    // try to load elm.json
+    const originalElmPackagePath = path.join(rootDir, "elm.json");
     let elmPackage: any = null;
     try {
         elmPackage = JSON.parse(fs.readFileSync(originalElmPackagePath, "utf8"));
@@ -124,12 +126,10 @@ export function multiple(
     makeCacheDir(dirPath);
     wipeElmFromCache(dirPath);
 
-    const projectName = parseProjectName(elmPackage.repository);
     elmPackage = fixElmPackage(rootDir, elmPackage);
 
-    const elmPackagePath = path.join(dirPath, "elm-package.json");
+    const elmPackagePath = path.join(dirPath, "elm.json");
     const privateMainPath = path.join(dirPath, `PrivateMain${moduleHash}.elm`);
-    const nativePath = path.join(dirPath, "Native/Jsonify.js");
 
     fs.writeFileSync(elmPackagePath, JSON.stringify(elmPackage));
 
@@ -145,9 +145,6 @@ export function multiple(
 
     const rendererFileContents = templates.generateRendererFile(moduleHash, templateConfigs);
     fs.writeFileSync(privateMainPath, rendererFileContents);
-
-    const nativeString = templates.generateNativeModuleString(projectName);
-    fs.writeFileSync(nativePath, nativeString);
 
     return installPackages(dirPath, installMethod).then(() => {
         return runCompiler(moduleHash, privateMainPath, dirPath, configs, elmMakePath);
@@ -173,8 +170,8 @@ export function elmStaticHtml(rootDir: string, viewFunction: string, options: Op
             .then((outputs) => outputs[0].generatedHtml);
     }
 
-    // try to load elm-package.json
-    const originalElmPackagePath = path.join(rootDir, "elm-package.json");
+    // try to load elm.json
+    const originalElmPackagePath = path.join(rootDir, "elm.json");
     let elmPackage: any = null;
     try {
         elmPackage = JSON.parse(fs.readFileSync(originalElmPackagePath, "utf8"));
@@ -185,20 +182,15 @@ export function elmStaticHtml(rootDir: string, viewFunction: string, options: Op
     makeCacheDir(dirPath);
     wipeElmFromCache(dirPath);
 
-    const projectName = parseProjectName(elmPackage.repository);
     elmPackage = fixElmPackage(rootDir, elmPackage);
 
-    const elmPackagePath = path.join(dirPath, "elm-package.json");
+    const elmPackagePath = path.join(dirPath, "elm.json");
     const privateMainPath = path.join(dirPath, `PrivateMain${viewHash}.elm`);
-    const nativePath = path.join(dirPath, "Native/Jsonify.js");
 
     fs.writeFileSync(elmPackagePath, JSON.stringify(elmPackage));
 
     const rendererFileContents = templates.generateRendererFile(viewHash, [config]);
     fs.writeFileSync(privateMainPath, rendererFileContents);
-
-    const nativeString = templates.generateNativeModuleString(projectName);
-    fs.writeFileSync(nativePath, nativeString);
 
     return installPackages(dirPath, options.installMethod).then(() => {
         return runCompiler(viewHash, privateMainPath, dirPath, [config], options.elmMakePath)
@@ -207,14 +199,15 @@ export function elmStaticHtml(rootDir: string, viewFunction: string, options: Op
 }
 
 function fixElmPackage(workingDir: string, elmPackage: any) {
-    elmPackage["native-modules"] = true;
     const sources = elmPackage["source-directories"].map((dir: string) => {
         return path.join(workingDir, dir);
     });
     sources.push(".");
 
     elmPackage["source-directories"] = sources;
-    elmPackage.dependencies["eeue56/elm-html-in-elm"] = "2.0.0 <= v < 3.0.0";
+    elmPackage.dependencies.direct["ThinkAlexandria/elm-html-in-elm"] = "1.0.1";
+    elmPackage.dependencies.direct["elm/json"] = "1.1.3";
+
 
     return elmPackage;
 }
@@ -226,7 +219,7 @@ function runCompiler(moduleHash: string,
     const options: any = {
         cwd: rootDir,
         output: "elm.js",
-        yes: true,
+        optimize: true
     };
 
     if (elmMakePath) {
@@ -247,7 +240,7 @@ function runCompiler(moduleHash: string,
                     const runs = runElmApp(moduleHash, rootDir,
                         configs.map((config) => [config.fileOutputName, config.model]));
 
-                    return runs.then(resolve);
+                    return runs.then(resolve).catch(reject);
                 },
             );
         });
