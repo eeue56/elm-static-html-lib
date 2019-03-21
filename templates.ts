@@ -45,7 +45,7 @@ render${viewHash} values =
     in
         case Json.decodeValue ${decoderName} values of
             Err err ->
-                "I could not decode the argument for ${viewFunction}:" ++ err
+                "I could not decode the argument for ${viewFunction}:" ++ Json.errorToString err
 
             Ok model ->
                 (decode options) <| ${viewFunction} model

@@ -25,11 +25,10 @@
   },
   "homepage": "https://github.com/eeue56/elm-static-html-lib#readme",
   "devDependencies": {
-    "@types/es6-promise": "0.0.32",
-    "@types/node": "^8.0.17",
+    "@types/node": "^11.11.4",
     "tslint": "^5.5.0",
-    "typescript": "^2.4.2",
-    "typescript-formatter": "^5.2.0"
+    "typescript": "^3.3.4000",
+    "typescript-formatter": "^7.2.2"
   },
   "dependencies": {
     "es6-promise": "^4.1.1",
