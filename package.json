@@ -1,6 +1,6 @@
 {
-  "name": "elm-static-html-lib",
-  "version": "0.1.0",
+  "name": "@dawehner/elm-static-html-lib",
+  "version": "0.2.1",
   "description": "Generate HTML from Elm views",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -25,14 +25,13 @@
   },
   "homepage": "https://github.com/eeue56/elm-static-html-lib#readme",
   "devDependencies": {
-    "@types/es6-promise": "0.0.32",
-    "@types/node": "^8.0.17",
+    "@types/node": "^11.11.4",
     "tslint": "^5.5.0",
-    "typescript": "^2.4.2",
-    "typescript-formatter": "^5.2.0"
+    "typescript": "^3.3.4000",
+    "typescript-formatter": "^7.2.2"
   },
   "dependencies": {
     "es6-promise": "^4.1.1",
-    "node-elm-compiler": "^4.3.2"
+    "node-elm-compiler": "^5.0.2"
   }
 }

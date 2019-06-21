@@ -1,4 +1,5 @@
 # elm-static-html-lib
+Note: This is a fork of https://github.com/eeue56/elm-static-html-lib for elm 0.19
 
 Generate static html by passing an optional json object to your Elm views.
 
