@@ -33,6 +33,6 @@
   },
   "dependencies": {
     "es6-promise": "^4.1.1",
-    "node-elm-compiler": "^4.3.2"
+    "node-elm-compiler": "^5.0.6"
   }
 }
